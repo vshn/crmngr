@@ -1,0 +1,464 @@
+#!/usr/bin/env python3
+
+"""manage a r10k-style control repository"""
+
+import argparse
+import configparser
+import logging
+import logging.config
+import os
+import shutil
+import sys
+import tempfile
+
+from collections import OrderedDict
+
+from crmngrlib import Report
+from crmngrlib import __version__ as crmngr_version
+from crmngrlib.puppetmodules import PuppetModule
+from crmngrlib.utils import query_yes_no, cprint
+
+__author__ = "Andre Keller <andre.keller@vshn.ch>"
+__copyright__ = "Copyright (c) 2015, VSHN AG, info@vshn.ch"
+__license__ = 'BSD'
+
+LOG = logging.getLogger(__name__)
+
+
+def verify_crmngr_directory():
+    """make sure crmngr config/cache directory exists"""
+    directory = os.path.join(os.path.expanduser('~'), '.crmngr')
+    try:
+        os.mkdir(directory)
+    except FileExistsError:
+        pass
+    return directory
+
+
+def get_arg_parser():
+    """Get argument parser"""
+    descr = 'manage a r10k-style control repository'
+    parser = argparse.ArgumentParser(description=descr, prog='crmngr')
+    parser.add_argument(
+        '--version', '-v',
+        action='version', version='%(prog)s ' + crmngr_version
+    )
+    parser.add_argument(
+        '--debug', '-d',
+        dest='debug', action='store_true', default=False,
+        help='enable debug output'
+    )
+    version_check_group = parser.add_mutually_exclusive_group()
+    version_check_group.add_argument(
+        '--no-version-check',
+        dest='version_check', action='store_false',
+        help=('do not check for latest versions. default behaviour, unless '
+              'overridden in the prefs file, is to fetch current version '
+              'information for every module found in every Puppetfile. '
+              'this may take a considerable amount of time, especially if the '
+              'data is not cached yet/anymore.')
+    )
+    version_check_group.add_argument(
+        '--version-check',
+        dest='version_check', action='store_true',
+        help=('check for latest versions. this is the default behaviour, '
+              'unless overridden in the prefs file.')
+    )
+    cache_group = parser.add_mutually_exclusive_group()
+    cache_group.add_argument(
+        '--no-cache',
+        dest='cache', action='store_false',
+        help=('ignore cached information about latest versions. default '
+              'behaviour, unless overridden in the prefs file, is to read '
+              'version info from a cache (default ttl 24h) if available.')
+    )
+    cache_group.add_argument(
+        '--cache',
+        dest='cache', action='store_true',
+        help=('read version info from cache (default ttl 24h) if available. '
+              'this is the default behaviour unless overridden in the prefs '
+              'file.')
+    )
+    parser.add_argument(
+        '--profile', '-p',
+        dest='profile', default='default',
+        help='crmngr configuration profile'
+    )
+    subparsers = parser.add_subparsers(title='commands',
+                                       dest='command',
+                                       description='valid commands')
+    subparsers.required = True
+
+    report_parser = subparsers.add_parser(
+        'report',
+        help='puppetfile reporting (-h for usage details)'
+    )
+    report_parser.add_argument(
+        '--report-unused',
+        dest='report_unused', action='store_true', default=False,
+        help='additionally list branches that are not using a certain module'
+    )
+    report_parser.add_argument(
+        '--environments', '--environment', '--env', '-e',
+        nargs='*', type=str, dest='branches', metavar='ENVIRONMENT',
+        help=('restrict output to specific environment(s) / branch(es). '
+              'Supports glob(7)-style wildcard patterns')
+    )
+    report_parser.add_argument(
+        '--module', '--modules', '--mod', '-m',
+        nargs='*', type=str, dest='modules',
+        help=('restrict output to specific module(s). Supports glob(7)-style '
+              'wildcard patterns')
+    )
+    update_parser = subparsers.add_parser(
+        'update',
+        help='puppetfile manipulation (-h for usage details)'
+    )
+    interactive_group = update_parser.add_mutually_exclusive_group()
+    interactive_group.add_argument(
+        '--diff-only', '--dry-run', '-n',
+        default=False, action='store_true', dest='diffonly',
+        help='only show changes'
+    )
+    interactive_group.add_argument(
+        '--non-interactive',
+        default=False, action='store_true', dest='noninteractive',
+        help=('in non-interactive mode, crmngr will neither ask for '
+              'confirmation before commit or push, nor will it show diffs '
+              'of what will be changed. Use with care!')
+    )
+    mode_group = update_parser.add_mutually_exclusive_group()
+    mode_group.add_argument(
+        '--add',
+        default=False, action='store_true',
+        help=('add module if not already in Puppetfile. '
+              'default behaviour is to only update module in branches it '
+              'is already defined.')
+    )
+    mode_group.add_argument(
+        '--remove',
+        default=False, action='store_true',
+        help=('remove module from Puppetfile. version identifying parameters '
+              '(--version, --tag, --commit, --branch) are NOT taken into '
+              'account. all module versions are removed!')
+    )
+    update_parser.add_argument(
+        '--environment', '--environments', '--env', '-e',
+        nargs='*', type=str, dest='branches', metavar='ENVIRONMENT',
+        help='update only specific environment(s) / branch(es). Default: all.'
+    )
+    update_parser.add_argument(
+        '--module', '--mod', '-m',
+        type=str, dest='module',
+        help=('module to update/add/remove, for modules fetched from '
+              'forge.puppetlabs.com the format needs to be author/modulename')
+    )
+    source_group = update_parser.add_mutually_exclusive_group()
+    source_group.add_argument(
+        '--git',
+        type=str, metavar="URL",
+        help=('git URL of module\'s repository. if not specified, the '
+              'module is fetched from forge.puppetlabs.com')
+    )
+    source_group.add_argument(
+        '--version',
+        nargs='?', const="LATEST_FORGE_VERSION", type=str,
+        help=('version of forge.puppetlabs.com module. if parameter is '
+              'specified without VERSION, latest available version from '
+              'forge.puppetlabs.com will be used instead')
+    )
+    version_group = update_parser.add_mutually_exclusive_group()
+    version_group.add_argument(
+        '--tag',
+        nargs='?', const="LATEST_GIT_TAG", type=str,
+        help=('tag of git module. If parameter is specified without TAG, '
+              'latest tag from repository is used instead')
+    )
+    version_group.add_argument(
+        '--commit',
+        type=str,
+        help='commit of git module'
+    )
+    version_group.add_argument(
+        '--branch',
+        type=str,
+        help='branch of git module'
+    )
+    subparsers.add_parser('clean', help='Clean cache')
+    subparsers.add_parser(
+        'profiles', help='list available configuration profiles'
+    )
+    return parser
+
+
+def verify_args(args):
+    """perform some extended validation of cli arguments"""
+    if args.command != 'update':
+        return
+
+    if args.add or args.remove:
+        if not args.module:
+            raise RuntimeError(
+                "It does not make sense to specify --add or --remove without "
+                "--module."
+            )
+
+    if not args.git:
+        if args.branch or args.commit or args.tag:
+            raise RuntimeError(
+                "It does not make sense to specify --branch/--commit/--tag "
+                "without --git"
+            )
+
+    if args.module:
+        if not args.git:
+            if not args.remove:
+                if "/" not in args.module:
+                    raise RuntimeError(
+                        "When adding or updating forge modules, --module has "
+                        "to be in author/module format"
+                    )
+    else:
+        if args.version or args.git:
+            raise RuntimeError(
+                "It does not make sense to specify --git/--version without "
+                "specifying --module"
+            )
+
+
+def ensure_crmngr_section(config):
+    """Add crmngr section to configparser if it does not exists"""
+    if not config.has_section('crmngr'):
+        config.add_section('crmngr')
+    return config
+
+
+def initialize_crmngr_section(config, prefs):
+    """Ensure that crnmgr section exists in the configuration object.
+
+    This section is used to provide configuration data throughout the
+    application. We therefore ensure the section is not populated from outside
+    """
+    if config.has_section('crmngr'):
+        raise RuntimeError(
+            'crmngr is a reserved section, do not specify in configuration'
+        )
+    config.add_section('crmngr')
+    for option in prefs.options('crmngr'):
+        config.set('crmngr', option, prefs.get('crmngr', option))
+    return config
+
+
+def verify_prefs_file(configfile):
+    """Verify prefs file"""
+    config = configparser.ConfigParser(
+        defaults={
+            'cache': 'yes',
+            'version_check': 'yes',
+        }
+    )
+    try:
+        config.read(configfile)
+        return ensure_crmngr_section(config)
+    except configparser.NoSectionError:
+        return ensure_crmngr_section(config)
+
+
+def verify_profile_file(configfile, prefs):
+    """Verify configuration file, create one if not existing"""
+    config = configparser.ConfigParser(allow_no_value=True)
+    try:
+        config.read(configfile)
+        _ = config.get('default', 'repository')
+        return initialize_crmngr_section(config, prefs)
+    except (configparser.NoSectionError, configparser.NoOptionError):
+        pass
+
+    print("No valid profile file found!")
+    print("Enter git url of control repositoriy to create one.")
+    print("Leave empty to abort")
+    print()
+    print("Control repository url: ", end="")
+    url = input().strip()
+    if url:
+        config = configparser.ConfigParser()
+        config.add_section('default')
+        config.set('default', 'repository', url)
+        with open(configfile, 'w') as config_file:
+            config.write(config_file)
+        return initialize_crmngr_section(config, prefs)
+    exit()
+
+
+def read_profiles(config):
+    """read available profiles from configuration"""
+    profiles = OrderedDict()
+    for profile in sorted(config.sections()):
+        if config.has_option(profile, 'repository'):
+            profiles[profile] = config.get(profile, 'repository')
+    return profiles
+
+
+def parse_args(prefs):
+    """parse cli args and merge with preferences from prefs file."""
+    parser = get_arg_parser()
+    parser.set_defaults(
+        version_check=prefs.getboolean('crmngr', 'version_check'),
+    )
+    return parser, parser.parse_args()
+
+
+def setup_logging(debug):
+    """setup logging configuration"""
+    if debug:
+        logging.config.dictConfig({
+            'version': 1,
+            'disable_existing_loggers': False,
+            'formatters': {
+                'standard': {
+                    'format': '%(asctime)s - %(levelname)s - %(message)s'
+                },
+            },
+            'handlers': {
+                'default': {
+                    'formatter': 'standard',
+                    'class': 'logging.StreamHandler',
+                },
+            },
+            'loggers': {
+                '': {
+                    'handlers': ['default'],
+                    'level': 'DEBUG',
+                    'propagate': True
+                },
+            }
+        })
+
+
+def main():
+    """main function"""
+    crmngr_dir = verify_crmngr_directory()
+
+    # load preferences
+    prefs = verify_prefs_file(os.path.join(crmngr_dir, 'prefs'))
+
+    # verify configuration file, create one if it not exists yet
+    config = verify_profile_file(os.path.join(crmngr_dir, 'profiles'), prefs)
+
+    parser, args = parse_args(prefs)
+
+    try:
+        verify_args(args)
+    except RuntimeError as exc:
+        parser.print_help()
+        sys.stderr.write("\nerror: %s\n" % exc)
+        sys.exit(1)
+
+    setup_logging(args.debug)
+
+    if args.command == 'clean':
+        do_clean(os.path.join(crmngr_dir, 'cache'))
+        sys.exit()
+
+    if args.cache:
+        cache = None
+        try:
+            cache = os.path.join(crmngr_dir, 'cache')
+            os.mkdir(cache)
+        except FileExistsError:
+            pass
+        except OSError:
+            cache = None
+    else:
+        cache = None
+
+    # read profiles from configuration
+    profiles = read_profiles(config)
+
+    if args.command == 'profiles':
+        do_profiles(profiles)
+        sys.exit()
+
+    if args.profile in profiles:
+        config.set('crmngr', 'repository', profiles[args.profile])
+    else:
+        raise RuntimeError(
+            "%s is not a valid configuration profile" % args.profile
+        )
+
+    # create temporary directory
+    tmpdir = tempfile.mkdtemp(prefix='crmngr_')
+    LOG.debug('created temporary directory: %s', tmpdir)
+
+    try:
+        report = Report(
+            config,
+            cache=cache,
+            tmpdir=tmpdir,
+            args=args,
+        )
+
+        if args.command == 'report':
+            do_report(report, args)
+        elif args.command == 'update':
+            do_update(report, args)
+    except KeyboardInterrupt:
+        pass
+
+    # delete temporary directory
+    shutil.rmtree(tmpdir)
+    LOG.debug('removed temporary directory: %s', tmpdir)
+
+
+def do_clean(cache):
+    """clean action"""
+    if query_yes_no("Delete cache directory: %s" % cache):
+        try:
+            shutil.rmtree(cache)
+        except OSError:
+            pass
+
+
+def do_profiles(profiles):
+    """profiles action"""
+    cprint.white_bold('Available profiles:')
+    for profile, url in profiles.items():
+        cprint.white(" - %s: %s" % (profile, url))
+
+
+def do_report(report, args):
+    """report action"""
+    report.print_module_report(
+        args.modules, args.branches, args.report_unused
+    )
+
+
+def do_update(report, args):
+    """update action"""
+    module = report.module_from_args(args)
+    LOG.debug('Module object parsed from cli args: %s', module)
+    if args.add:
+        mode = 'add'
+        commit_message = "Add or update "
+    elif args.remove:
+        mode = 'remove'
+        commit_message = "Remove "
+    else:
+        mode = 'update'
+        commit_message = "Update "
+    puppetfiles = report.prepare_puppetfiles(mode, args.branches, module)
+    if isinstance(module, PuppetModule):
+        if module.version and not args.remove:
+            commit_message += "%s module (%s)" % (
+                module.name, module.version
+            )
+        else:
+            commit_message += "%s module" % module.name
+    else:
+        commit_message = "Standardize Puppetfile"
+
+    report.update_puppetfiles(puppetfiles, commit_message)
+
+
+if __name__ == '__main__':
+    main()

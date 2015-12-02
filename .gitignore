@@ -1,0 +1,6 @@
+/crmngr.egg-info
+/dist
+/build
+.idea
+*.py[cod]
+__pycache__/
