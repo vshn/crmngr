@@ -8,7 +8,8 @@ crmngr
 Overview
 ********
 
-crmngr is a tool to aid with the management of a r10k-style control repository.
+crmngr (Control Repository Manager) is a tool to aid with the management of a
+r10k-style control repository for puppet
 
 about r10k
 ==========
@@ -17,24 +18,29 @@ from `r10k's github page <https://github.com/puppetlabs/r10k>`_:
     R10k provides a general purpose toolset for deploying Puppet environments
     and modules. It implements the `Puppetfile`_ format and provides a native
     implementation of Puppet dynamic environments.
-    
-r10k is basically a git repository where each branch representes a dynamic
-puppet environment. When working with more than a handful environments it is
-hard to keep track of the modules spread over all these branches. Here is where
-crmngr comes to the rescue.
+
+r10k is a tool that creates a puppet environment for each branch in a git
+repository (the "control repository") on the puppetmaster. Each branch contains
+a `Puppetfile` that declares which puppet modules in which versions from which
+source (puppetforge or a git URL) should be installed in the corresponding
+environment.
+When working with more than a handful environments it is hard to keep track of
+the modules spread over all these environments. Here is where crmngr comes to the rescue.
 
 crmngr
 ======
 
 crmngr (Control Repository Manager) can generate reports and help with adding,
-updating or removing modules over multiple branches.
+updating or removing modules in Puppetfiles spread over multiple branches.
 
 See usage section of this document for details.
 
 CAVEATS:
     crmngr will not parse/validate metadata.json and thus will not check if all
-    dependencies are satisfied between the modules in a certain environment.
+    dependencies are satisfied between the modules in a certain environment !
 
+It is similar to https://github.com/camptocamp/puppetfile-updater and was
+developed independently during the same timeframe.
 
 ************
 Installation
@@ -74,8 +80,8 @@ crmngr is available in the `AUR <https://aur.archlinux.org/packages/crmngr/>`_
 Configuration
 *************
 
-crmngr is looking for its configuration files in `~/.crmngr`.
-
+crmngr is looking for its configuration files in `~/.crmngr/` and will create
+them if run for the first time
 
 profiles
 ========
@@ -92,7 +98,7 @@ git url of the r10k-style control repository of the default profile.
 
     [default]
     repository = git@git.example.org:user/control.git
-    
+
 If started without configuration file, crmngr will offer to create one.
 
 Additional sections can be added to support multiple profiles
@@ -390,8 +396,9 @@ The profile command lists available configuration profiles.
 
     usage: crmngr profiles
 
-    
+
+
 .. _github-r10k: https://github.com/puppetlabs/r10k
 
-.. _Puppetfile: 
+.. _Puppetfile:
   https://github.com/puppetlabs/r10k/blob/master/doc/puppetfile.mkd
