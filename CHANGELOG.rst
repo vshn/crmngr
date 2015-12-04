@@ -16,4 +16,4 @@ Added
 - initial public release
 
 .. _Semantic Versioning: http://semver.org/
-.. _Unreleased: https://github.com/vshn/tikapy/compare/v1.0.0...HEAD
+.. _Unreleased: https://github.com/vshn/crmngr/compare/v1.0.0...HEAD
