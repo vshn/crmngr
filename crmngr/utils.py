@@ -1,32 +1,31 @@
-#!/usr/bin/env python3
+""" crmngr utility module """
 
-"""collection of functions used by crmngrlib"""
-
-import fnmatch
-import hashlib
+# stdlib
+from fnmatch import fnmatchcase
 import sys
 
 
-def sha256(string):
-    """generate sha256 sum"""
-    return hashlib.sha256(string.encode('utf-8')).hexdigest()
+def truncate(string, max_len=1000):
+    """returns a truncated to max_len version of a string (or str(string))"""
+    string = str(string)
+    if len(string) > max_len - 12:
+        return string[:max_len] + '...TRUNCATED'
+    return string
 
 
-def fnlistmatch(name, patterns, noneistrue=True):
-    """fnmatch a list of patterns"""
-    if not patterns:
-        if noneistrue:
-            return True
-        return False
+def fnlistmatch(value, patterns):
+    """match a value against a list of fnmatch patterns.
 
+    returns True if any pattern matches.
+    """
     for pattern in patterns:
-        if fnmatch.fnmatch(name, pattern):
+        if fnmatchcase(value, pattern):
             return True
     return False
 
 
 def query_yes_no(question, default="yes"):
-    """Ask a yes/no question via raw_input() and return their answer."""
+    """Asks a yes/no question via and returns the answer as bool."""
     valid = {"yes": True, "y": True, "ye": True, "j": True,
              "no": False, "n": False}
     if default is None:
@@ -46,5 +45,4 @@ def query_yes_no(question, default="yes"):
         elif choice in valid:
             return valid[choice]
         else:
-            sys.stdout.write("Please respond with 'yes' or 'no' "
-                             "(or 'y' or 'n').\n")
+            print("Please respond with 'yes' or 'no' (or 'y' or 'n').")
