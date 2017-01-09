@@ -1,6 +1,15 @@
-/crmngr.egg-info
-/dist
-/build
-.idea
+# pycharm
+/.idea/tasks.xml
+/.idea/workspace.xml
+
+# cache
 *.py[cod]
 __pycache__/
+
+# virtualenv
+/pyvenv/
+
+# packaging
+/crmngr.egg-info/
+/dist/
+/build/
