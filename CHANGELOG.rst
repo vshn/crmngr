@@ -88,7 +88,6 @@ Added
 
 - initial public release
 
-.. _Semantic Versioning: http://semver.org/
 .. _Unreleased: https://github.com/vshn/crmngr/compare/v2.0.0rc1...HEAD
 .. _2.0.0rc1: https://github.com/vshn/crmngr/compare/v1.0.0...v2.0.0rc1
 .. _natsort: https://pypi.python.org/pypi/natsort
