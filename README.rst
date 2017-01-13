@@ -73,7 +73,7 @@ pip
 
 .. code-block:: text
 
-    pip install crmngr
+    pip3 install crmngr
 
 
 ArchLinux
@@ -84,7 +84,8 @@ crmngr is available in the `AUR`_
 
 Ubuntu
 ======
-crmngr is available in the `PPA`_
+
+crmngr is available in the `PPA`_, package is called `python3-crmngr`
 
 
 *************

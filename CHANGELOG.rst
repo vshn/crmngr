@@ -6,6 +6,15 @@ All notable changes to this project will be documented in this file.
 `Unreleased`_
 -------------
 
+`2.0.0`_ - 2017-01-13
+---------------------
+
+Changed
+~~~~~~~
+
+- Clarify install procedures in README.
+
+
 `2.0.0rc1`_ - 2017-01-05
 ------------------------
 
@@ -89,6 +98,7 @@ Added
 - initial public release
 
 .. _Unreleased: https://github.com/vshn/crmngr/compare/v2.0.0rc1...HEAD
+.. _2.0.0: https://github.com/vshn/crmngr/compare/v2.0.0rc1...v2.0.0
 .. _2.0.0rc1: https://github.com/vshn/crmngr/compare/v1.0.0...v2.0.0rc1
 .. _natsort: https://pypi.python.org/pypi/natsort
 .. _requests: https://pypi.python.org/pypi/requests
