@@ -6,6 +6,15 @@ All notable changes to this project will be documented in this file.
 `Unreleased`_
 -------------
 
+`2.0.1`_ - 2017-02-13
+---------------------
+
+Fixed
+~~~~~
+
+- Fix handling of forge modules without a current_release. (`#13`_)
+
+
 `2.0.0`_ - 2017-01-13
 ---------------------
 
@@ -98,7 +107,9 @@ Added
 - initial public release
 
 .. _Unreleased: https://github.com/vshn/crmngr/compare/v2.0.0rc1...HEAD
+.. _2.0.1: https://github.com/vshn/crmngr/compare/v2.0.0...v2.0.1
 .. _2.0.0: https://github.com/vshn/crmngr/compare/v2.0.0rc1...v2.0.0
 .. _2.0.0rc1: https://github.com/vshn/crmngr/compare/v1.0.0...v2.0.0rc1
+.. _#13: https://github.com/vshn/crmngr/issues/13
 .. _natsort: https://pypi.python.org/pypi/natsort
 .. _requests: https://pypi.python.org/pypi/requests

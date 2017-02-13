@@ -50,7 +50,7 @@ class ForgeApi:
                     api_info['updated_at'], '%Y-%m-%d %H:%M:%S %z'
                 ).strftime('%Y-%m-%d'),
             }
-        except (AttributeError, KeyError, ValueError) as exc:
+        except (AttributeError, KeyError, TypeError, ValueError) as exc:
             LOG.debug('could not parse api response: %s', exc)
             raise ForgeError('could not parse api response: %s' % exc) from None
 
