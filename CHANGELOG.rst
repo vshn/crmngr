@@ -106,7 +106,7 @@ Added
 
 - initial public release
 
-.. _Unreleased: https://github.com/vshn/crmngr/compare/v2.0.0rc1...HEAD
+.. _Unreleased: https://github.com/vshn/crmngr/compare/v2.0.1...HEAD
 .. _2.0.1: https://github.com/vshn/crmngr/compare/v2.0.0...v2.0.1
 .. _2.0.0: https://github.com/vshn/crmngr/compare/v2.0.0rc1...v2.0.0
 .. _2.0.0rc1: https://github.com/vshn/crmngr/compare/v1.0.0...v2.0.0rc1
