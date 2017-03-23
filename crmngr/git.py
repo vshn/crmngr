@@ -73,7 +73,7 @@ class Repository:
         """verify if repository has a specific branch"""
         if not self.git(['branch', '--list', '--all', 'origin/%s' % branch]):
             raise GitError(
-                "Branch {branch} not found for reporsitory {url}".format(
+                "Branch {branch} not found for repository {url}".format(
                     branch=branch,
                     url=self._url
                 )
@@ -83,7 +83,7 @@ class Repository:
         """verify if repository has a specific tag"""
         if not self.git(['tag', '--list', tag]):
             raise GitError(
-                "Tag {tag} not found for reporsitory {url}".format(
+                "Tag {tag} not found for repository {url}".format(
                     tag=tag,
                     url=self._url
                 )
@@ -95,7 +95,7 @@ class Repository:
 
         if output != 'commit':
             raise GitError(
-                "Commit {commit} not found for reporsitory {url}".format(
+                "Commit {commit} not found for repository {url}".format(
                     commit=commit,
                     url=self._url
                 )
