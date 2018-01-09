@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 `Unreleased`_
 -------------
 
+
+`2.0.2`_ - 2018-01-09
+---------------------
+
 Fixed
 ~~~~~
 
@@ -114,7 +118,8 @@ Added
 
 - initial public release
 
-.. _Unreleased: https://github.com/vshn/crmngr/compare/v2.0.1...HEAD
+.. _Unreleased: https://github.com/vshn/crmngr/compare/v2.0.2...HEAD
+.. _2.0.2: https://github.com/vshn/crmngr/compare/v2.0.1...v2.0.2
 .. _2.0.1: https://github.com/vshn/crmngr/compare/v2.0.0...v2.0.1
 .. _2.0.0: https://github.com/vshn/crmngr/compare/v2.0.0rc1...v2.0.0
 .. _2.0.0rc1: https://github.com/vshn/crmngr/compare/v1.0.0...v2.0.0rc1
