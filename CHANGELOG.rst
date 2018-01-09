@@ -6,6 +6,14 @@ All notable changes to this project will be documented in this file.
 `Unreleased`_
 -------------
 
+Fixed
+~~~~~
+
+- Title in environments command did not reflect the active profile correctly,
+  it would always report the environment list would be for the default
+  profile.
+
+
 `2.0.1`_ - 2017-02-13
 ---------------------
 

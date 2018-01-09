@@ -44,6 +44,7 @@ class CrmngrConfig:
         """initialize crmngr configuration for the specified profile"""
         self._cache_dir = None
         self._config_dir = self._ensure_configuration_directory()
+        self._profile = profile
 
         # initialize preferences
         self._config = ConfigParser(
@@ -60,7 +61,7 @@ class CrmngrConfig:
         # initialize profiles
         self._profiles = ConfigParser()
         self._profiles.read(os.path.join(self._config_dir, 'profiles'))
-        self._control_repo_url = self._profiles.get(profile, 'repository')
+        self._control_repo_url = self._profiles.get(self.profile, 'repository')
 
     @classmethod
     def create_default_configuration(cls, default_profile_url):
@@ -85,6 +86,11 @@ class CrmngrConfig:
     def control_repo_url(self):
         """returns control repo url"""
         return self._control_repo_url
+
+    @property
+    def profile(self):
+        """returns active configuration profile"""
+        return self._profile
 
     @property
     def profiles(self):
