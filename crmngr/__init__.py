@@ -165,7 +165,7 @@ def command_environments(*, configuration,
     control_repo = ControlRepository(
         clone_url=configuration.control_repo_url,
     )
-    cprint.white_bold('Environments in profile %s' % 'default')
+    cprint.white_bold('Environments in profile %s' % configuration.profile)
     for environment in sorted(control_repo.environments):
         cprint.white(' - {}'.format(environment.name))
 
