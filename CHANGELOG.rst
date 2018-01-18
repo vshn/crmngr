@@ -6,6 +6,14 @@ All notable changes to this project will be documented in this file.
 `Unreleased`_
 -------------
 
+`2.0.3`_ - 2018-01-18
+---------------------
+
+Changed
+~~~~~~~
+
+- New way of handling version resolution during the build process.
+
 
 `2.0.2`_ - 2018-01-09
 ---------------------
@@ -118,7 +126,8 @@ Added
 
 - initial public release
 
-.. _Unreleased: https://github.com/vshn/crmngr/compare/v2.0.2...HEAD
+.. _Unreleased: https://github.com/vshn/crmngr/compare/v2.0.3...HEAD
+.. _2.0.3: https://github.com/vshn/crmngr/compare/v2.0.2...v2.0.3
 .. _2.0.2: https://github.com/vshn/crmngr/compare/v2.0.1...v2.0.2
 .. _2.0.1: https://github.com/vshn/crmngr/compare/v2.0.0...v2.0.1
 .. _2.0.0: https://github.com/vshn/crmngr/compare/v2.0.0rc1...v2.0.0
