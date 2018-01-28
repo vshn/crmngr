@@ -201,7 +201,7 @@ class ControlRepository(Repository):
         """remove whitespace and comments from puppetfile lines"""
         puppetfile_lines = []
         re_comment = re.compile(r'^\s*#')
-        re_mod = re.compile(r'^\s*mod')
+        re_mod = re.compile(r'^\s*mod\s+')
         line_buffer = None
         for line in lines:
             stripped_line = line.strip()
