@@ -5,7 +5,6 @@ from tempfile import TemporaryDirectory
 import pytest
 
 from crmngr import ControlRepository
-from crmngr.puppetfile import GitTag
 
 
 @pytest.fixture()
@@ -19,6 +18,7 @@ def control_repo():
     with open(str(Path(work_dir, 'Puppetfile')), 'w') as puppetfile:
         puppetfile.write("\n".join([
             "forge 'http://forge.puppetlabs.com'",
+            "moduledir 'thirdparty'",
             "",
             "mod 'firewall',",
             "  :git => 'https://github.com/puppetlabs/puppetlabs-firewall.git',",
@@ -33,6 +33,7 @@ def control_repo():
     with open(str(Path(work_dir, 'Puppetfile')), 'w') as puppetfile:
         puppetfile.write("\n".join([
             "forge 'http://forge.puppetlabs.com'",
+            "moduledir 'thirdparty'",
             "",
             "mod 'puppetlabs/firewall', '1.10.0",
             "mod 'puppetlabs/stdlib', '4.23.0'"
