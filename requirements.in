@@ -1,2 +1,4 @@
 natsort
+pytest
+pytest-runner
 requests

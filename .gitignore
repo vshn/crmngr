@@ -13,3 +13,7 @@ __pycache__/
 /crmngr.egg-info/
 /dist/
 /build/
+
+# testing
+/.cache/
+/pytestdebug.log

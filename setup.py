@@ -38,6 +38,12 @@ setup(
         'natsort>=4.0.0',
         'requests>=2.1.0',
     ],
+    setup_requires=[
+        'pytest-runner',
+    ],
+    tests_require=[
+        'pytest',
+    ],
     python_requires='>=3.4',
     # BSD 3-Clause License:
     # - http://opensource.org/licenses/BSD-3-Clause
