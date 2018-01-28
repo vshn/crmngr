@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file.
 `Unreleased`_
 -------------
 
+Fixed
+~~~~~
+
+- Simplify version lookup, make it compatible with python 3.4 again.
+
+
 `2.0.3`_ - 2018-01-18
 ---------------------
 

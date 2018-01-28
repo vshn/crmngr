@@ -4,22 +4,16 @@ from pathlib import Path
 import re
 from setuptools import setup, find_packages
 
-# Read version from crmngr/version.py
-# we do not import, as this fails if dependencies from install_depends are not
-# available
-with open(Path('./crmngr/version.py')) as version_file:
-    VERSION_REGEX = re.compile(
-        r'^\s*__version__\s*=\s*["\'](?P<version>.*)["\']\s*$'
-    )
-    for line in version_file.readlines():
-        version_match = VERSION_REGEX.match(line)
+
+def find_version(source_file):
+    """read __version__ from source file"""
+    with open(source_file) as version_file:
+        version_match = re.search(r"^__version__\s*=\s* ['\"]([^'\"]*)['\"]",
+                                  version_file.read(), re.M)
         if version_match:
-            __version__ = version_match.groupdict()['version']
-            break
-    else:
-        __version__ = 'unknown'
-        raise Exception('Could not get current version of nacli from '
-                        './nacli/version.py')
+            return version_match.group(1)
+        raise RuntimeError('Unable to find package version')
+
 
 setup(
     name='crmngr',
@@ -44,10 +38,11 @@ setup(
         'natsort>=4.0.0',
         'requests>=2.1.0',
     ],
+    python_requires='>=3.4',
     # BSD 3-Clause License:
     # - http://opensource.org/licenses/BSD-3-Clause
     license='BSD',
     packages=find_packages(),
     url='https://github.com/vshn/crmngr',
-    version=__version__,
+    version=find_version(str(Path('./crmngr/version.py'))),
 )
