@@ -98,7 +98,7 @@ def _reject_git_version_parameters(args):
 def _reject_forge_version_parameter(args):
     """reject forge version parameter."""
     if args.forge_version:
-        raise CliError('it is not supported to specifiy --version without '
+        raise CliError('it is not supported to specify --version without '
                        '--forge.')
 
 
