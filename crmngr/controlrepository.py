@@ -136,8 +136,8 @@ class ControlRepository(Repository):
         self.git(['checkout', '--orphan', new_env])
         self.git(['reset', '--hard'])
 
-        with open(os.path.join(self._workdir, 'Puppetfile'), 'w') as puppetfile:
-            puppetfile.write("forge 'http://forge.puppetlabs.com'\n\n")
+        # create empty Puppetfile
+        open(os.path.join(self._workdir, 'Puppetfile'), 'a').close()
         self.git(['add', 'Puppetfile'])
         os.mkdir(os.path.join(self._workdir, 'manifests'))
         with open(os.path.join(self._workdir, 'manifests', 'site.pp'),
@@ -577,8 +577,6 @@ class ControlRepository(Repository):
                   'w') as puppetfile:
             LOG.debug('write new version of Puppetfile in environment %s',
                       environment.name)
-            # write file header
-            puppetfile.write("forge 'http://forge.puppetlabs.com'\n\n")
             # write module lines
             puppetfile.writelines(
                 ('{}\n'.format(line)
