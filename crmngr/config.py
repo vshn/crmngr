@@ -62,6 +62,8 @@ class CrmngrConfig:
         self._profiles = ConfigParser()
         self._profiles.read(os.path.join(self._config_dir, 'profiles'))
         self._control_repo_url = self._profiles.get(self.profile, 'repository')
+        self._control_repo_urls = [self._profiles.get(profile.name, 'repository')
+                                   for profile in self.profiles]
 
     @classmethod
     def create_default_configuration(cls, default_profile_url):
@@ -86,6 +88,11 @@ class CrmngrConfig:
     def control_repo_url(self):
         """returns control repo url"""
         return self._control_repo_url
+
+    @property
+    def control_repo_urls(self):
+        """returns control repo url"""
+        return self._control_repo_urls
 
     @property
     def profile(self):

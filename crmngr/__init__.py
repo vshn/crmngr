@@ -7,6 +7,7 @@ import sys
 
 # 3rd-party
 from crmngr import cprint
+from crmngr import output
 from crmngr.cache import JsonCache
 from crmngr.cli import parse_cli_args
 from crmngr.config import CrmngrConfig
@@ -135,29 +136,42 @@ def command_delete(*, configuration, cli_args,
 def command_report(*, configuration, cli_args, version_cache,
                    **kwargs):  # pylint: disable=unused-argument
     """run report command"""
-    control_repo = ControlRepository(
-        clone_url=configuration.control_repo_url,
-        environments=cli_args.environments,
-        modules=cli_args.modules,
-    )
 
-    if cli_args.compare and not len(control_repo.environments) >= 2:
+
+    # TODO
+    # control_repo = ControlRepository(
+    #         clone_url=configuration.control_repo_url,
+    #         environments=cli_args.environments,
+    #         modules=cli_args.modules,
+    #     )
+    control_repos = [ControlRepository(url, modules=cli_args.modules, environments=cli_args.environments) for url in
+                     configuration.control_repo_urls]
+    # environments = [environment.name for environment in
+    #                [control_repo.environments for control_repo in
+    #                 control_repos]
+    #               ]
+    environments = []
+    for environment_list in [control_repo.environments for control_repo in
+                     control_repos]:
+        for env in environment_list:
+            environments.append(env)
+
+    if cli_args.compare and not len(environments) >= 2:
         cprint.yellow_bold(
             'At least two environments required in compare mode. Only matched '
             'environment: {}'.format(
                 ', '.join([environment.name
-                           for environment in control_repo.environments])
+                           for environment in environments])
             )
         )
         sys.exit(1)
 
-    control_repo.report(
-        compare=cli_args.compare,
-        version_cache=version_cache,
-        version_check=cli_args.version_check,
-        wrap=cli_args.wrap,
-    )
-
+    output.report(repositories=control_repos,
+                  wrap=cli_args.wrap,
+                  version_check=cli_args.version_check,
+                  version_cache=version_cache,
+                  compare=cli_args.compare
+                  )
 
 def command_environments(*, configuration,
                          **kwargs):  # pylint: disable=unused-argument
