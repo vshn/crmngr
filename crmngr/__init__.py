@@ -106,6 +106,7 @@ def command_create(*, configuration, cli_args, version_cache,
         )
         if cli_args.report:
             control_repo.report(
+                outdated_only=cli_args.outdated_only,
                 version_cache=version_cache,
                 version_check=cli_args.version_check,
                 wrap=cli_args.wrap,
@@ -153,6 +154,7 @@ def command_report(*, configuration, cli_args, version_cache,
 
     control_repo.report(
         compare=cli_args.compare,
+        outdated_only=cli_args.outdated_only,
         version_cache=version_cache,
         version_check=cli_args.version_check,
         wrap=cli_args.wrap,

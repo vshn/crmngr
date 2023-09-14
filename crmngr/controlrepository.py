@@ -638,10 +638,29 @@ class ControlRepository(Repository):
         return modules
 
     def report(self, wrap=True, version_check=True, version_cache=None,
-               compare=True):
+               compare=True, outdated_only=False):
         """print control repository report"""
 
-        for module, versions in sorted(self.modules.items()):
+        if outdated_only:
+            outdated_modules = {}
+            for module, versions in sorted(self.modules.items()):
+                if len(versions) > 1:
+                    outdated_modules[module] = versions
+                    continue
+
+                version, environments = next(iter(versions.items()))
+                if not isinstance(version.version, (GitTag, Forge)):
+                    continue
+                else:
+                    if version.version == version.get_latest_version(version_cache):
+                        continue
+                    else:
+                        outdated_modules[module] = versions
+            modules = outdated_modules
+        else:
+            modules = self.modules
+
+        for module, versions in sorted(modules.items()):
 
             # in compare mode, skip modules that are identical in all processed
             # environments.

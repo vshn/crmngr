@@ -387,6 +387,9 @@ class BaseVersion:
     def __repr__(self):
         return "%s(%s)" % (type(self).__name__, str(self._version))
 
+    def __eq__(self, other):
+        return str(self) == str(other)
+
     @property
     def version(self):
         """Return Version(-string)"""
