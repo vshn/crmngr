@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file.
 `Unreleased`_
 -------------
 
+Added
+~~~~~
+
+- Mode to only display outdated modules (i.e. modules that are neither
+  deployed only on the latest available tag or forge version)
+
 Fixed
 ~~~~~
 

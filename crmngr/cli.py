@@ -322,6 +322,12 @@ def report_command_parser(parent_parser, configuration,
         help=('compare mode will only show modules that differ between '
               'environments.'),
     )
+    display_group.add_argument(
+        '--outdated-only',
+        dest='outdated_only', action='store_true',
+        help=('outdated-only mode will only show modules that have versions '
+              'deployed that are neither on the latest tag or latest forge version')
+    )
     version_check_group = display_group.add_mutually_exclusive_group()
     version_check_group.add_argument(
         '--version-check',
